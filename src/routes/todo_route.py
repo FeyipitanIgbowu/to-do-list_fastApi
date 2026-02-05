@@ -22,12 +22,12 @@ def create(todo: TodoCreate):
 def complete(todo_id: int):
     todo = service.mark_done(todo_id)
     if not todo:
-        raise HTTPException(status_code=404, detail="Chale, todo no dey")
+        raise HTTPException(status_code=404, detail="Your todo list is empty")
     return todo
 
 @router.delete("/{todo_id}")
 def delete(todo_id: int):
     todo = service.remove_todo(todo_id)
     if not todo:
-        raise HTTPException(status_code=404, detail="Ei, we no find am")
-    return {"message": "Todo clear. Respect 👊"}
+        raise HTTPException(status_code=404, detail="Your to do list does not exist")
+    return {"message": "Deleted successfully"}
