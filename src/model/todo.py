@@ -1,6 +1,9 @@
+from sqlalchemy import Column, Integer, String, Boolean
+from src.database.db import Base
 
-class Todo:
-    def __init__(self, id: int, title: str, completed: bool = False):
-        self.id = id
-        self.title = title
-        self.completed = completed
+class Todo(Base):
+    __tablename__ = "todos"
+
+    id = Column(Integer, primary_key=True)
+    title = Column(String, nullable=False)
+    completed = Column(Boolean, default=False)
