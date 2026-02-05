@@ -1,31 +1,28 @@
-
 from src.repository.todo_repository import TodoRepository
 from src.model.todo import Todo
 
 class TodoService:
-    def __init__(self, repository: TodoRepository):
-        self.repository = repository
 
-    def list_todos(self):
-        return self.repository.find_all()
+    def __init__(self, repo: TodoRepository):
+        self.repo = repo
 
-    def add_todo(self, title: str):
-        todo = Todo(
-            id=len(self.repository.find_all()) + 1,
-            title=title
-        )
-        return self.repository.save(todo)
+    def get_todos(self, db):
+        return self.repo.find_all(db)
 
-    def mark_done(self, todo_id: int):
-        todo = self.repository.find_by_id(todo_id)
+    def create_todo(self, db, title: str):
+        todo = Todo(title=title)
+        return self.repo.save(db, todo)
+
+    def complete_todo(self, db, todo_id: int):
+        todo = self.repo.find_by_id(db, todo_id)
         if not todo:
             return None
         todo.completed = True
-        return todo
+        return self.repo.save(db, todo)
 
-    def remove_todo(self, todo_id: int):
-        todo = self.repository.find_by_id(todo_id)
+    def delete_todo(self, db, todo_id: int):
+        todo = self.repo.find_by_id(db, todo_id)
         if not todo:
             return None
-        self.repository.delete(todo)
+        self.repo.delete(db, todo)
         return todo

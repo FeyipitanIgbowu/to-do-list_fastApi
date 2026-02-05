@@ -1,33 +1,39 @@
-# This be where HTTP request dey land
-
-from fastapi import APIRouter, HTTPException
-from src.schemas.todo_schema import TodoCreate, TodoResponse
-from src.services.todo_service import TodoService
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from src.database.db import SessionLocal
 from src.repository.todo_repository import TodoRepository
+from src.services.todo_service import TodoService
+from src.schemas.todo_schema import TodoCreate, TodoResponse
 
-router = APIRouter(prefix="/todos", tags=["Chale Todos"])
+router = APIRouter(prefix="/todos", tags=["Todos"])
 
-repo = TodoRepository()
-service = TodoService(repo)
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+service = TodoService(TodoRepository())
 
 @router.get("", response_model=list[TodoResponse])
-def list_all():
-    return service.list_todos()
+def get_todos(db: Session = Depends(get_db)):
+    return service.get_todos(db)
 
 @router.post("", response_model=TodoResponse)
-def create(todo: TodoCreate):
-    return service.add_todo(todo.title)
+def create_todo(todo: TodoCreate, db: Session = Depends(get_db)):
+    return service.create_todo(db, todo.title)
 
 @router.put("/{todo_id}", response_model=TodoResponse)
-def complete(todo_id: int):
-    todo = service.mark_done(todo_id)
+def complete_todo(todo_id: int, db: Session = Depends(get_db)):
+    todo = service.complete_todo(db, todo_id)
     if not todo:
-        raise HTTPException(status_code=404, detail="Your todo list is empty")
+        raise HTTPException(404, "Todo not found")
     return todo
 
 @router.delete("/{todo_id}")
-def delete(todo_id: int):
-    todo = service.remove_todo(todo_id)
+def delete_todo(todo_id: int, db: Session = Depends(get_db)):
+    todo = service.delete_todo(db, todo_id)
     if not todo:
-        raise HTTPException(status_code=404, detail="Your to do list does not exist")
-    return {"message": "Deleted successfully"}
+        raise HTTPException(404, "Todo not found")
+    return {"message": "Todo deleted"}
